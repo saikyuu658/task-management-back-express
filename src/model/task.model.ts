@@ -1,57 +1,64 @@
-import type { promises } from "dns"
-import type { createDtoTask, updateDtoTask } from "../dto/task.dto.js"
+import { Prisma, PrismaClient, type Task } from "@prisma/client"
+
 
 
 class TaskModel {
-    async findAll (): Promise<updateDtoTask[]> {
+
+    constructor(
+        private prisma = new PrismaClient()
+    ) { }
+
+    async findAll (): Promise<Prisma.TaskCreateInput[]> {
         try {
-            await new Promise(e=> setTimeout(e,1000))
-            const task: updateDtoTask[] = []
-            return task;
+            return await this.prisma.task.findMany()
         } catch (error: any) {
             throw new Error(error.message)
         }
     }
 
-    async findOneById ( params: { id : string} ) : Promise<updateDtoTask | null>{
+    async findOneById ( params: { id : number} ) : Promise<Prisma.TaskCreateInput | null>{
         try {
             const { id } = params;
-            await new Promise(e=> setTimeout(e,1000))
-            const task = null
-            return task;
+            return await this.prisma.task.findUnique({
+                where :{ 
+                    id: id
+                }
+            })
         } catch (error: any) {
             throw new Error(error.message)
         }
     }
 
-    async create ( newTask : createDtoTask ): Promise<createDtoTask> {
+    async create ( data : Prisma.TaskCreateInput ): Promise<Prisma.TaskCreateInput> {
         try {
-            await new Promise(e=> setTimeout(e,1000))
-            return newTask;
+            return await this.prisma.task.create({data});
         } catch (error: any) {
             throw new Error(error.message)
         }
     }
 
-    async update (task: updateDtoTask):Promise<updateDtoTask> {
+    async update ( id: number,task: Prisma.TaskUpdateInput):Promise<Prisma.TaskUpdateInput> {
         try {
-            await new Promise(e=> setTimeout(e,1000))
-            return task;
+            return await this.prisma.task.update({data: task, where: {id: id}})
         } catch (error: any) {
             throw new Error(error.message)
         }
     }
 
-    async delete (params : {id: string}): Promise<string | null> {
+    async delete (params : {id: number}): Promise<Prisma.TaskUpdateInput> {
         try {
             const {id} = params;
-            await new Promise(e=> setTimeout(e,1000))
-            return id;
+            return await this.prisma.task.delete({
+                where: {
+                    id : id
+                }
+            })
         } catch (error:any) {
             throw new Error(error.message)
-            
         }
     }
+
+    
 }
 
 export default TaskModel
