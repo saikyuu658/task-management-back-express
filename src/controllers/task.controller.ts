@@ -8,6 +8,7 @@ export const findAll = async (req: Request, res: Response) => {
         const result = await taskModel.findAll()   
         return res.status(200).json(result)
     } catch (error: any) {
+        console.log(error)
         res.status(400).json({
             message: error.message,
         });
@@ -30,7 +31,8 @@ export const findOneById = async (req: Request, res: Response) => {
 export const create = async (req: Request, res: Response) => {
     try {
         const {task} = req.body
-        const result =  await taskModel.create(task)   
+        const {updated, ...newTask} = task 
+        const result =  await taskModel.create(newTask)   
         return res.status(200).json(result)       
     } catch (error: any) {
         res.status(400).json({
@@ -42,9 +44,12 @@ export const create = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
     try {
         const {task} = req.body
-        const result =  await taskModel.update(task.id, task)
+        const {updated, ...updatedTask} = task 
+        const result =  await taskModel.update(task.id, updatedTask)
+        console.log(result);
         return res.status(200).json(result)         
     } catch (error: any) {
+        console.log(error)
         res.status(400).json({
             message: error.message,
         });
