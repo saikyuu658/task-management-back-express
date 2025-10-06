@@ -1,16 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
+import { ValidateCrsfToken } from "../services/csrf.js";
 
-
-const COOKIE_NAME = '_csrf_secret';
 
 export const auth = (req: Request, res: Response, next: NextFunction) => {
-    console.log('Session ID (PUT /task):', (req as any).session.id);
-    console.log('Cookie Secret (PUT /task):', req.cookies[COOKIE_NAME]);
-    if(true){
+    try {
+        if(!ValidateCrsfToken(req)) throw new Error()
         next()
-    } else{
-        res.status(403).json(
-            "Forbiden access"
-        )
+    } catch (error) {
+        res.status(403).json('Token inválido')
     }
 }

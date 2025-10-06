@@ -1,23 +1,40 @@
 import type { Request, Response, NextFunction } from 'express';
-import lusca from 'lusca';
+import { doubleCsrf } from "csrf-csrf";
 
-export const csrfProtection = lusca({
-    csrf: {
-        secret: process.env.CSRF_SECRET || 'seu-session-secret-super-seguro-aqui',
-        cookie: {
-            name: '_csrf',
-            options: {
-                httpOnly: false, 
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
-            }
-        }
+
+const {
+    generateCsrfToken, 
+    validateRequest, 
+    doubleCsrfProtection, 
+} = doubleCsrf({
+    getSecret: (req: any) => 'secret',
+    getSessionIdentifier: (req: Request) => 'pao',
+    cookieName: "__Host-psifi.x-csrf-token",
+    cookieOptions: {
+        sameSite : "none",
+        path : "/",
+        secure : false,
+        httpOnly : false,
     },
-    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
-    nosniff: true,
-    referrerPolicy: "same-origin",
-    xframe: "SAMEORIGIN",
-    xssProtection: true,
+    size: 32,
+    getCsrfTokenFromRequest: (req: Request) => req.headers['x-csrf-token'] 
 });
+
+export const CsrfProtection = doubleCsrfProtection;
+
+
+export const generateToken = (req: Request, res: Response) => {
+    const token = generateCsrfToken(req, res);
+    if (!token) throw new Error('Erro ao gerar token')
+    return token
+}
+
+
+export const ValidateCrsfToken = (req: Request,): boolean => {
+    const token = validateRequest(req);
+    if (!token) throw new Error('Token inválido')
+    return true
+}
+
 
 

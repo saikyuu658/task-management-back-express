@@ -1,53 +1,36 @@
 import express from 'express';
-import session from 'express-session';
+import type{ Request } from 'express';
+import cookieParser from 'cookie-parser';
 import taskRouter from './routes/task.route.js';
 import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.route.js';
 import cors from 'cors'
 import bodyParser from 'body-parser';
-import { csrfProtection } from './services/csrf.js';
+import { CsrfProtection } from './services/csrf.js';
 dotenv.config()
 
 const app = express();
 
-app.use(cookieParser());
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'seu-session-secret-aqui',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
-  }
-}))
-
-app.use(express.urlencoded({ extended: true}))
 app.use(cors({
   origin: 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'x-csrf-token']
 }))
 app.use(bodyParser.json())
 
-app.use(csrfProtection)
+app.use(cookieParser())
 
-//rotas
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
+app.use((req: Request, res, next) => {
+  console.log('=== HEADERS RECEIVED ===');
+  console.log(`${req.method} ${req.path}`)
+  console.log('x-csrf-token:', req.headers['x-csrf-token']);
+  console.log('cookies:', JSON.stringify(req.cookies));
+  console.log('========================');
   next();
 });
 
-app.use((err: any, req: any, res: any, next: any) => {
-  if (err.code === 'EBADCSRFTOKEN') {
-    return res.status(403).json({
-      error: 'Invalid CSRF token',
-      message: 'Token CSRF inválido ou expirado'
-    });
-  }
-  next(err);
-});
 
+//rotas
 app.use('/auth', authRouter)
 app.use('/task', taskRouter)
 
